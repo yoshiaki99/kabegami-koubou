@@ -103,7 +103,17 @@ header{grid-area:head;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   grid-area:panel;background:var(--paper);border:3px solid var(--ink);border-radius:28px;
   box-shadow:0 6px 0 var(--ink);overflow:hidden;
 }
-.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:3px solid var(--ink)}
+.tabs{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:3px solid var(--ink)}
+#cv.drawing{cursor:crosshair}
+.rainbow{background:conic-gradient(#FF5A5A,#FFD23F,#3CCB8F,#4C8DFF,#9A7BFF,#FF6FA3,#FF5A5A)}
+.widths{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.wbtn{
+  appearance:none;border:3px solid var(--ink);border-radius:16px;background:var(--soft);cursor:pointer;
+  height:56px;display:flex;align-items:center;justify-content:center;padding:0;
+}
+.wbtn i{display:block;background:var(--ink);border-radius:999px;width:60%}
+.wbtn[aria-pressed="true"],.tool[aria-pressed="true"]{background:var(--sun)}
+.wbtn:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
 .tab{
   appearance:none;border:0;border-right:3px solid var(--ink);background:var(--soft);
   padding:10px 2px 8px;cursor:pointer;font-weight:700;font-size:14px;line-height:1.3;
@@ -204,6 +214,7 @@ footer strong{font-weight:700}
       <button class="tab" role="tab" aria-selected="true" data-tab="color"><span class="ico" aria-hidden="true">🎨</span>いろ</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="pattern"><span class="ico" aria-hidden="true">🌟</span>もよう</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="stamp"><span class="ico" aria-hidden="true">🐰</span>スタンプ</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="draw"><span class="ico" aria-hidden="true">🖍️</span>おえかき</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="text"><span class="ico" aria-hidden="true">✏️</span>もじ</button>
       <button class="tab" role="tab" aria-selected="false" data-tab="save"><span class="ico" aria-hidden="true">💾</span>ほぞん</button>
     </div>
@@ -234,6 +245,22 @@ footer strong{font-weight:700}
       <div class="cats" id="cats"></div>
       <div class="stamps" id="stamps"></div>
       <p class="note">さわると まんなかに でるよ。ゆびで うごかしてね。2ほんの ゆびで おおきさも かえられるよ。</p>
+    </div>
+
+    <div class="pane" data-pane="draw">
+      <div class="row">
+        <button class="btn tool" id="toolPen" aria-pressed="true">🖍️ ペン</button>
+        <button class="btn tool" id="toolEraser" aria-pressed="false">🧽 けしゴム</button>
+      </div>
+      <h2>ペンの いろ</h2>
+      <div class="swatches" id="swD"></div>
+      <h2>ふとさ</h2>
+      <div class="widths" id="widths"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn small" id="undoLine">さいごの せんを けす</button>
+        <button class="btn small pink" id="clearLines">せんを ぜんぶ けす</button>
+      </div>
+      <p class="note">「おえかき」を えらんでいる あいだは、かべがみに ゆびで かけるよ。けしゴムで なぞると、さわった せんが きえるよ。</p>
     </div>
 
     <div class="pane" data-pane="text">
@@ -310,6 +337,8 @@ footer strong{font-weight:700}
   let S = fresh();
   try { const s = JSON.parse(localStorage.getItem('kabegami-v1')); if (s && s.items) S = Object.assign(fresh(), s); } catch(e) {}
   let photo = null, sel = -1, textColor = '#FFFFFF', edge = true, cat = 'どうぶつ';
+  let mode = 'move', tool = 'pen', penColor = '#23305E', penW = 1;
+  const WIDTHS = [0.008, 0.018, 0.036];
   const hist = [];
   const snap = () => { hist.push(JSON.stringify(S)); if (hist.length > 50) hist.shift(); };
 
@@ -387,7 +416,32 @@ footer strong{font-weight:700}
     ctx.font = itemFont(it);
     return {hw: ctx.measureText(it.text).width/2 + it.size*0.15, hh: it.size*0.65};
   }
+  function drawLine(c, it){
+    const p = it.pts;
+    c.save();
+    c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = it.w;
+    if (p.length === 1){
+      c.fillStyle = it.color==='rainbow' ? 'hsl(0,90%,60%)' : it.color;
+      c.beginPath(); c.arc(p[0][0], p[0][1], it.w/2, 0, 7); c.fill();
+    } else if (it.color === 'rainbow'){
+      for (let i=1;i<p.length;i++){
+        c.strokeStyle = `hsl(${(i*6)%360},90%,60%)`;
+        c.beginPath(); c.moveTo(p[i-1][0],p[i-1][1]); c.lineTo(p[i][0],p[i][1]); c.stroke();
+      }
+    } else {
+      c.strokeStyle = it.color;
+      c.beginPath(); c.moveTo(p[0][0],p[0][1]);
+      for (let i=1;i<p.length-1;i++){
+        const mx = (p[i][0]+p[i+1][0])/2, my = (p[i][1]+p[i+1][1])/2;
+        c.quadraticCurveTo(p[i][0], p[i][1], mx, my);
+      }
+      c.lineTo(p[p.length-1][0], p[p.length-1][1]);
+      c.stroke();
+    }
+    c.restore();
+  }
   function drawItem(c, it){
+    if (it.type==='draw') return drawLine(c, it);
     c.save();
     c.translate(it.x, it.y); c.rotate(it.rot*Math.PI/180);
     c.font = itemFont(it); c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -489,6 +543,7 @@ footer strong{font-weight:700}
   }
   function hit(p){
     for (let i=S.items.length-1;i>=0;i--){
+      if (S.items[i].type==='draw') continue;
       const it = S.items[i], b = itemBox(it), a = -it.rot*Math.PI/180;
       const dx = p.x-it.x, dy = p.y-it.y;
       const lx = dx*Math.cos(a)-dy*Math.sin(a), ly = dx*Math.sin(a)+dy*Math.cos(a);
@@ -496,7 +551,25 @@ footer strong{font-weight:700}
     }
     return -1;
   }
+  let pen = null;
+  function eraseAt(p){
+    const r = S.w*0.03;
+    const before = S.items.length;
+    S.items = S.items.filter(it => it.type!=='draw' || !it.pts.some(q => Math.hypot(q[0]-p.x, q[1]-p.y) < r + it.w/2));
+    return S.items.length !== before;
+  }
   cv.addEventListener('pointerdown', e => {
+    if (mode === 'draw'){
+      if (pen) return; // ignore a second finger / palm
+      cv.setPointerCapture(e.pointerId);
+      const p = toCanvas(e);
+      snap(); pen = {id:e.pointerId};
+      if (tool === 'pen'){
+        pen.item = {type:'draw', color:penColor, w:Math.round(S.w*WIDTHS[penW]), pts:[[Math.round(p.x),Math.round(p.y)]]};
+        S.items.push(pen.item);
+      } else eraseAt(p);
+      render(); return;
+    }
     cv.setPointerCapture(e.pointerId);
     const p = toCanvas(e); pts.set(e.pointerId, p);
     if (pts.size === 1){
@@ -510,6 +583,20 @@ footer strong{font-weight:700}
     }
   });
   cv.addEventListener('pointermove', e => {
+    if (pen){
+      if (e.pointerId !== pen.id) return;
+      const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      let changed = false;
+      for (const ev of (evs.length ? evs : [e])){
+        const p = toCanvas(ev);
+        if (pen.item){
+          const last = pen.item.pts[pen.item.pts.length-1];
+          if (Math.hypot(p.x-last[0], p.y-last[1]) > pen.item.w*0.25){ pen.item.pts.push([Math.round(p.x),Math.round(p.y)]); changed = true; }
+        } else if (eraseAt(p)) changed = true;
+      }
+      if (changed) render();
+      return;
+    }
     if (!pts.has(e.pointerId)) return;
     const p = toCanvas(e); pts.set(e.pointerId, p);
     const it = S.items[sel]; if (!it || !drag) return;
@@ -522,7 +609,9 @@ footer strong{font-weight:700}
     }
     render();
   });
-  const up = e => { pts.delete(e.pointerId); if (pts.size===0) drag = null; else if (drag && drag.pinch) drag = null; };
+  const up = e => {
+    if (pen && e.pointerId === pen.id){ pen = null; render(); return; }
+    pts.delete(e.pointerId); if (pts.size===0) drag = null; else if (drag && drag.pinch) drag = null; };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   const clampSize = s => Math.min(Math.max(s, S.w*0.04), S.w*0.9);
 
@@ -541,7 +630,49 @@ footer strong{font-weight:700}
   document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
     document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x===t));
     document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.dataset.pane===t.dataset.tab));
+    mode = t.dataset.tab === 'draw' ? 'draw' : 'move';
+    cv.classList.toggle('drawing', mode === 'draw');
+    if (mode === 'draw' && sel >= 0){ sel = -1; render(); }
   });
+
+  // ---------- drawing controls ----------
+  (function buildDraw(){
+    const el = document.getElementById('swD');
+    ['rainbow', ...COLORS.filter(c => c !== '#9AA3B8')].forEach(col => {
+      const b = document.createElement('button');
+      b.className = 'sw' + (col==='rainbow' ? ' rainbow' : '');
+      if (col !== 'rainbow') b.style.background = col;
+      b.setAttribute('aria-label', col==='rainbow' ? 'にじいろ' : col);
+      b.setAttribute('aria-pressed', col===penColor);
+      b.onclick = () => { penColor = col; setTool('pen'); [...el.children].forEach(x => x.setAttribute('aria-pressed', x===b)); };
+      el.appendChild(b);
+    });
+    const wEl = document.getElementById('widths');
+    WIDTHS.forEach((w, i) => {
+      const b = document.createElement('button');
+      b.className = 'wbtn'; b.setAttribute('aria-label', ['ほそい','ふつう','ふとい'][i]);
+      b.innerHTML = `<i style="height:${[4,10,20][i]}px"></i>`;
+      b.setAttribute('aria-pressed', i===penW);
+      b.onclick = () => { penW = i; [...wEl.children].forEach(x => x.setAttribute('aria-pressed', x===b)); };
+      wEl.appendChild(b);
+    });
+  })();
+  function setTool(t){
+    tool = t;
+    document.getElementById('toolPen').setAttribute('aria-pressed', t==='pen');
+    document.getElementById('toolEraser').setAttribute('aria-pressed', t==='eraser');
+  }
+  document.getElementById('toolPen').onclick = () => setTool('pen');
+  document.getElementById('toolEraser').onclick = () => setTool('eraser');
+  document.getElementById('undoLine').onclick = () => {
+    for (let i=S.items.length-1;i>=0;i--) if (S.items[i].type==='draw'){ snap(); S.items.splice(i,1); sel = -1; return render(); }
+    toast('けす せんが ないよ');
+  };
+  document.getElementById('clearLines').onclick = () => {
+    if (!S.items.some(it => it.type==='draw')) return toast('けす せんが ないよ');
+    if (!confirm('かいた せんを ぜんぶ けす？')) return;
+    snap(); S.items = S.items.filter(it => it.type!=='draw'); sel = -1; render();
+  };
   document.getElementById('undo').onclick = () => {
     if (!hist.length) return toast('もう もどれないよ');
     S = JSON.parse(hist.pop()); sel = -1; render(true); refreshSwatches(); syncSize();
@@ -576,7 +707,10 @@ footer strong{font-weight:700}
   sizeSel.onchange = () => {
     snap();
     const [w,h] = sizeSel.value.split('x').map(Number), kx = w/S.w, ky = h/S.h;
-    S.items.forEach(it => { it.x *= kx; it.y *= ky; it.size *= kx; });
+    S.items.forEach(it => {
+      if (it.type==='draw'){ it.pts = it.pts.map(q => [Math.round(q[0]*kx), Math.round(q[1]*ky)]); it.w *= kx; }
+      else { it.x *= kx; it.y *= ky; it.size *= kx; }
+    });
     S.w = w; S.h = h; render(true);
   };
   const clockBtn = document.getElementById('clockBtn'), clock = document.getElementById('clock');
