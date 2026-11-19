@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex">
+<title>かべがみ こうぼう</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#BFE6FF;
+  --ink:#23305E;
+  --paper:#FFFFFF;
+  --pink:#FF6FA3;
+  --sun:#FFD23F;
+  --leaf:#3CCB8F;
+  --grape:#9A7BFF;
+  --soft:#EAF6FF;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background-color:var(--sky);
+  background-image:radial-gradient(rgba(255,255,255,.55) 2px, transparent 2.5px);
+  background-size:28px 28px;
+  color:var(--ink);
+  font-family:"Noto Sans JP","Hiragino Sans",sans-serif;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior:none;
+}
+button,input,select{font:inherit;color:inherit}
+.app{
+  max-width:1280px;margin:0 auto;
+  padding:max(14px, env(safe-area-inset-top)) 16px 24px;
+  display:grid;gap:16px;
+  grid-template-columns:minmax(0,1fr) 400px;
+  grid-template-areas:"head head" "stage panel" "foot foot";
+  align-items:start;
+}
+header{grid-area:head;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{
+  font-family:"Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;
+  font-weight:700;font-size:28px;letter-spacing:.06em;margin:0;
+  background:var(--paper);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 22px 8px;box-shadow:0 4px 0 var(--ink);white-space:nowrap;
+}
+.logo span{display:inline-block}
+.logo span:nth-child(5n+1){color:var(--pink)}
+.logo span:nth-child(5n+2){color:#E9A800}
+.logo span:nth-child(5n+3){color:#1FA772}
+.logo span:nth-child(5n+4){color:#4C8DFF}
+.logo span:nth-child(5n+5){color:var(--grape)}
+.head-actions{margin-left:auto;display:flex;gap:8px}
+
+/* ---- stage ---- */
+.stage{grid-area:stage;display:flex;flex-direction:column;align-items:center;gap:12px;position:sticky;top:12px}
+.device{
+  position:relative;background:var(--ink);border-radius:34px;padding:16px;
+  box-shadow:0 8px 0 rgba(35,48,94,.35);
+  height:calc(100dvh - 190px);min-height:380px;max-height:900px;
+  aspect-ratio:var(--ar, 0.695);max-width:100%;
+}
+.screen{position:relative;width:100%;height:100%;border-radius:20px;overflow:hidden;background:#fff}
+#cv{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.clock{
+  position:absolute;left:0;right:0;top:7%;text-align:center;pointer-events:none;
+  color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.35);
+  font-family:"Hiragino Sans","Noto Sans JP",sans-serif;
+}
+.clock .d{font-size:clamp(10px,1.6vh,16px);font-weight:700;opacity:.9}
+.clock .t{font-size:clamp(40px,10vh,104px);font-weight:700;line-height:1.05;letter-spacing:-.02em}
+.clock.off{display:none}
+.selbar{
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+  min-height:52px;
+}
+.selbar[hidden]{display:flex;visibility:hidden}
+
+/* ---- buttons ---- */
+.btn{
+  appearance:none;border:3px solid var(--ink);background:var(--paper);
+  border-radius:999px;padding:9px 18px;font-weight:700;font-size:17px;
+  box-shadow:0 4px 0 var(--ink);cursor:pointer;white-space:nowrap;
+  transition:transform .06s, box-shadow .06s;
+  min-height:48px;
+}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn:focus-visible,.sw:focus-visible,.stamp:focus-visible,.tab:focus-visible,.pat:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
+.btn.pink{background:var(--pink);color:#fff}
+.btn.sun{background:var(--sun)}
+.btn.leaf{background:var(--leaf);color:#fff}
+.btn.small{font-size:15px;padding:6px 14px;min-height:42px}
+.btn.big{font-size:22px;padding:14px 26px;width:100%}
+
+/* ---- panel ---- */
+.panel{
+  grid-area:panel;background:var(--paper);border:3px solid var(--ink);border-radius:28px;
+  box-shadow:0 6px 0 var(--ink);overflow:hidden;
+}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:3px solid var(--ink)}
+.tab{
+  appearance:none;border:0;border-right:3px solid var(--ink);background:var(--soft);
+  padding:10px 2px 8px;cursor:pointer;font-weight:700;font-size:14px;line-height:1.3;
+  display:flex;flex-direction:column;align-items:center;gap:2px;min-height:64px;
+}
+.tab:last-child{border-right:0}
+.tab .ico{font-size:24px;line-height:1}
+.tab[aria-selected="true"]{background:var(--sun)}
+.pane{padding:16px 18px 20px;display:none}
+.pane.on{display:block}
+.pane h2{font-size:17px;margin:14px 0 8px;font-weight:700}
+.pane h2:first-child{margin-top:0}
+.note{font-size:14px;line-height:1.7;margin:8px 0 0}
+.swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.sw{
+  appearance:none;aspect-ratio:1;border-radius:50%;border:3px solid var(--ink);cursor:pointer;padding:0;
+}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pat{
+  appearance:none;border:3px solid var(--ink);border-radius:16px;background:var(--soft);
+  cursor:pointer;padding:6px 2px;font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px
+}
+.pat .ico{font-size:24px}
+.pat[aria-pressed="true"]{background:var(--sun)}
+.cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.cats .btn{font-size:14px;padding:4px 12px;min-height:38px;box-shadow:0 3px 0 var(--ink)}
+.cats .btn[aria-pressed="true"]{background:var(--sun)}
+.stamps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.stamp{
+  appearance:none;border:3px solid var(--ink);border-radius:18px;background:var(--soft);
+  aspect-ratio:1;font-size:34px;cursor:pointer;padding:0;line-height:1;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+.stamp:active{background:var(--sun)}
+.field{
+  width:100%;border:3px solid var(--ink);border-radius:16px;padding:12px 14px;font-size:20px;
+  background:#fff;
+}
+.field:focus{outline:4px solid var(--grape);outline-offset:2px}
+select.field{font-size:17px}
+.steps{margin:10px 0 0;padding-left:1.4em;font-size:15px;line-height:1.8}
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;border-radius:999px;padding:12px 22px;font-weight:700;
+  opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:10;max-width:calc(100% - 32px);text-align:center
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+footer{grid-area:foot;font-size:13px;line-height:1.7;background:rgba(255,255,255,.7);border-radius:18px;padding:12px 16px}
+footer strong{font-weight:700}
+
+@media (max-width: 899px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-areas:"head" "stage" "panel" "foot"}
+  .stage{position:static}
+  .device{height:auto;width:min(100%, 540px);max-height:none;min-height:0;padding:12px;border-radius:28px}
+  .logo{font-size:22px;padding:5px 16px 7px}
+}
+@media (max-width: 520px){
+  .logo{font-size:17px;padding:5px 12px 6px;letter-spacing:.02em}
+  .head-actions{gap:6px}
+  .head-actions .btn{font-size:13px;padding:5px 10px}
+  .head-actions .btn{font-size:14px;padding:6px 12px;min-height:42px}
+}
+@media (prefers-reduced-motion: reduce){
+  .btn,.toast{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 class="logo" aria-label="かべがみ こうぼう"><span>か</span><span>べ</span><span>が</span><span>み</span><span>こ</span><span>う</span><span>ぼ</span><span>う</span></h1>
+    <div class="head-actions">
+      <button class="btn small" id="undo">ひとつ もどす</button>
+      <button class="btn small" id="clear">さいしょから</button>
+    </div>
+  </header>
+
+  <section class="stage" aria-label="かべがみの みほん">
+    <div class="device" id="device">
+      <div class="screen">
+        <canvas id="cv" aria-label="つくっている かべがみ"></canvas>
+        <div class="clock" id="clock" aria-hidden="true"><div class="d" id="clockD"></div><div class="t" id="clockT"></div></div>
+      </div>
+    </div>
+    <div class="selbar" id="selbar" hidden>
+      <button class="btn small" data-act="smaller">ちいさく</button>
+      <button class="btn small" data-act="bigger">おおきく</button>
+      <button class="btn small" data-act="rotate">くるっ</button>
+      <button class="btn small" data-act="front">いちばん まえ</button>
+      <button class="btn small pink" data-act="delete">けす</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="color"><span class="ico" aria-hidden="true">🎨</span>いろ</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="pattern"><span class="ico" aria-hidden="true">🌟</span>もよう</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="stamp"><span class="ico" aria-hidden="true">🐰</span>スタンプ</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="text"><span class="ico" aria-hidden="true">✏️</span>もじ</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="save"><span class="ico" aria-hidden="true">💾</span>ほぞん</button>
+    </div>
+
+    <div class="pane on" data-pane="color">
+      <h2>うえの いろ</h2>
+      <div class="swatches" id="swC1"></div>
+      <h2>したの いろ</h2>
+      <div class="swatches" id="swC2"></div>
+      <p class="note">うえと したを おなじ いろに すると、1しょくに なるよ。</p>
+      <h2>しゃしんや えを つかう</h2>
+      <div class="row">
+        <label class="btn sun" for="photo">しゃしんを えらぶ</label>
+        <input type="file" id="photo" accept="image/*" hidden>
+        <button class="btn" id="photoOff" hidden>しゃしんを はずす</button>
+      </div>
+      <p class="note">じぶんで かいた えを しゃしんに とって つかえるよ。</p>
+    </div>
+
+    <div class="pane" data-pane="pattern">
+      <h2>もよう</h2>
+      <div class="pats" id="pats"></div>
+      <h2>もようの いろ</h2>
+      <div class="swatches" id="swP"></div>
+    </div>
+
+    <div class="pane" data-pane="stamp">
+      <div class="cats" id="cats"></div>
+      <div class="stamps" id="stamps"></div>
+      <p class="note">さわると まんなかに でるよ。ゆびで うごかしてね。2ほんの ゆびで おおきさも かえられるよ。</p>
+    </div>
+
+    <div class="pane" data-pane="text">
+      <h2>なまえや ことば</h2>
+      <input class="field" id="txt" maxlength="16" placeholder="なまえを かいてね" autocomplete="off">
+      <h2>もじの いろ</h2>
+      <div class="swatches" id="swT"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn sun" id="addText">かべがみに いれる</button>
+        <button class="btn" id="edge" aria-pressed="true">しろい ふち：あり</button>
+      </div>
+      <p class="note">いれた もじを さわると、うごかしたり けしたり できるよ。</p>
+    </div>
+
+    <div class="pane" data-pane="save">
+      <h2>どの iPad？</h2>
+      <select class="field" id="size">
+        <option value="1640x2360">iPad（ふつう）・iPad Air 11インチ</option>
+        <option value="1488x2266">iPad mini</option>
+        <option value="1668x2420">iPad Pro 11インチ</option>
+        <option value="2048x2732">iPad Air 13インチ・むかしの iPad Pro 12.9</option>
+        <option value="2064x2752">iPad Pro 13インチ</option>
+      </select>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="clockBtn" aria-pressed="true">とけいの いち：みる</button>
+      </div>
+      <div style="margin-top:16px">
+        <button class="btn big pink" id="saveBtn">しゃしんに ほぞん</button>
+      </div>
+      <ol class="steps">
+        <li>「しゃしんに ほぞん」を おす</li>
+        <li>でてきた がめんで「画像を保存」を おす</li>
+        <li>「写真」アプリで えを ひらき、□↑ から「壁紙に設定」</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    <strong>おうちの方へ：</strong>このページは課金・広告・ログインがなく、作った画像はどこにも送信されません（すべてこのiPadの中で処理します）。作りかけのデザインはこのブラウザに自動で残ります（写真は残りません）。
+  </footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  const COLORS = ['#FF6FA3','#FF9EC4','#FF5A5A','#FF9F43','#FFD23F','#FFF3A8','#3CCB8F','#A8EBC9',
+                  '#4C8DFF','#9FD3FF','#9A7BFF','#D2C2FF','#8B5A3C','#FFFFFF','#9AA3B8','#23305E'];
+  const PATTERNS = [
+    {id:'none',  ico:'⬜', label:'なし'},
+    {id:'dots',  ico:'⚪', label:'みずたま'},
+    {id:'stripe',ico:'〰️', label:'しましま'},
+    {id:'check', ico:'🏁', label:'チェック'},
+    {id:'star',  ico:'⭐', label:'ほし'},
+    {id:'heart', ico:'💗', label:'ハート'},
+    {id:'cloud', ico:'☁️', label:'くも'},
+    {id:'zigzag',ico:'⚡', label:'ギザギザ'},
+  ];
+  const STAMPS = {
+    'どうぶつ':['🐶','🐱','🐰','🐻','🐼','🐨','🦊','🐯','🦁','🐸','🐧','🐥','🦄','🐬','🦋','🐹','🐢','🦖','🐳','🐞'],
+    'たべもの':['🍓','🍰','🍩','🍦','🍭','🧁','🍙','🍕','🍉','🍒','🍫','🍪','🍔','🍟','🍑','🍌','🍇','🥝','🧃','🍬'],
+    'そら':['⭐','🌟','✨','🌈','☀️','🌙','☁️','🪐','🌸','🌷','🌻','🍀','🍄','❄️','⚡','🌊','🔥','💧','🌵','🍁'],
+    'のりもの':['🚗','🚓','🚑','🚒','🚌','🚂','🚄','🚀','✈️','🚁','⛵','🚲','🛸','🚜','🏎️'],
+    'そのほか':['❤️','💖','💕','🎀','👑','💎','🎈','🎁','🎵','⚽','⚾','🏀','🎨','🧸','🪄','😊','😆','😎','🥰','👍'],
+  };
+
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const bg = document.createElement('canvas');
+  const bgx = bg.getContext('2d');
+  const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  const MARU = '"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif';
+
+  const fresh = () => ({w:1640,h:2360,c1:'#9FD3FF',c2:'#FF9EC4',pattern:'star',pcolor:'#FFFFFF',items:[]});
+  let S = fresh();
+  try { const s = JSON.parse(localStorage.getItem('kabegami-v1')); if (s && s.items) S = Object.assign(fresh(), s); } catch(e) {}
+  let photo = null, sel = -1, textColor = '#FFFFFF', edge = true, cat = 'どうぶつ';
+  const hist = [];
+  const snap = () => { hist.push(JSON.stringify(S)); if (hist.length > 50) hist.shift(); };
+
+  // ---------- drawing ----------
+  function starPath(c, x, y, r){
+    c.beginPath();
+    for (let i=0;i<10;i++){
+      const a = -Math.PI/2 + i*Math.PI/5, rr = i%2 ? r*0.45 : r;
+      c.lineTo(x+Math.cos(a)*rr, y+Math.sin(a)*rr);
+    }
+    c.closePath();
+  }
+  function heartPath(c, x, y, r){
+    c.beginPath();
+    c.moveTo(x, y+r*0.9);
+    c.bezierCurveTo(x-r*1.4, y+r*0.1, x-r*0.9, y-r*1.1, x, y-r*0.35);
+    c.bezierCurveTo(x+r*0.9, y-r*1.1, x+r*1.4, y+r*0.1, x, y+r*0.9);
+    c.closePath();
+  }
+  function drawBg(){
+    const {w,h} = S;
+    bg.width = w; bg.height = h;
+    const c = bgx;
+    if (photo){
+      const s = Math.max(w/photo.width, h/photo.height);
+      const pw = photo.width*s, ph = photo.height*s;
+      c.drawImage(photo, (w-pw)/2, (h-ph)/2, pw, ph);
+    } else {
+      const g = c.createLinearGradient(0,0,0,h);
+      g.addColorStop(0,S.c1); g.addColorStop(1,S.c2);
+      c.fillStyle = g; c.fillRect(0,0,w,h);
+    }
+    const u = w/8;
+    c.save();
+    c.globalAlpha = .45; c.fillStyle = S.pcolor; c.strokeStyle = S.pcolor;
+    switch (S.pattern){
+      case 'dots':
+        for (let y=0, r=0; y<h+u; y+=u*0.8, r++) for (let x=(r%2)*u/2; x<w+u; x+=u){ c.beginPath(); c.arc(x,y,u*0.16,0,7); c.fill(); }
+        break;
+      case 'stripe':
+        c.translate(w/2,h/2); c.rotate(-Math.PI/5);
+        for (let x=-h*1.2; x<h*1.2; x+=u*0.9) c.fillRect(x,-h*1.2,u*0.38,h*2.4);
+        break;
+      case 'check':
+        c.globalAlpha = .3;
+        for (let y=0,r=0; y<h; y+=u,r++) for (let x=0,k=0; x<w; x+=u,k++) if ((r+k)%2===0) c.fillRect(x,y,u,u);
+        break;
+      case 'star':
+        for (let y=u*0.5, r=0; y<h+u; y+=u*0.95, r++) for (let x=(r%2)*u*0.75 + u*0.3; x<w+u; x+=u*1.5){
+          starPath(c,x,y,u*(0.16 + ((r*7+x)%3)*0.04)); c.fill();
+        }
+        break;
+      case 'heart':
+        for (let y=u*0.5, r=0; y<h+u; y+=u*1.05, r++) for (let x=(r%2)*u*0.8 + u*0.3; x<w+u; x+=u*1.6){ heartPath(c,x,y,u*0.22); c.fill(); }
+        break;
+      case 'cloud':
+        for (let y=u*0.8, r=0; y<h+u; y+=u*1.7, r++) for (let x=(r%2)*u*1.4 + u*0.4; x<w+u*2; x+=u*2.8){
+          c.beginPath();
+          c.arc(x,y,u*0.32,0,7); c.arc(x+u*0.38,y-u*0.18,u*0.4,0,7); c.arc(x+u*0.8,y,u*0.3,0,7);
+          c.fill(); c.fillRect(x, y-u*0.05, u*0.8, u*0.35);
+        }
+        break;
+      case 'zigzag':
+        c.lineWidth = u*0.16; c.lineJoin = 'round';
+        for (let y=u*0.4; y<h+u; y+=u*0.9){
+          c.beginPath(); for (let x=-u, k=0; x<w+u; x+=u*0.5, k++) c.lineTo(x, y + (k%2 ? u*0.25 : -u*0.25)); c.stroke();
+        }
+        break;
+    }
+    c.restore();
+  }
+  function itemFont(it){ return it.type==='stamp' ? `${it.size}px ${EMOJI}` : `bold ${it.size}px ${MARU}`; }
+  function itemBox(it){
+    if (it.type==='stamp') return {hw:it.size*0.55, hh:it.size*0.55};
+    ctx.font = itemFont(it);
+    return {hw: ctx.measureText(it.text).width/2 + it.size*0.15, hh: it.size*0.65};
+  }
+  function drawItem(c, it){
+    c.save();
+    c.translate(it.x, it.y); c.rotate(it.rot*Math.PI/180);
+    c.font = itemFont(it); c.textAlign = 'center'; c.textBaseline = 'middle';
+    if (it.type==='stamp'){
+      c.fillText(it.ch, 0, it.size*0.04);
+    } else {
+      if (it.edge){ c.lineJoin='round'; c.lineWidth = it.size*0.22; c.strokeStyle = it.color.toUpperCase()==='#FFFFFF' ? '#23305E' : '#FFFFFF'; c.strokeText(it.text,0,0); }
+      c.fillStyle = it.color; c.fillText(it.text,0,0);
+    }
+    c.restore();
+  }
+  function paint(c, withSel){
+    c.drawImage(bg,0,0);
+    S.items.forEach(it => drawItem(c,it));
+    if (withSel && S.items[sel]){
+      const it = S.items[sel], b = itemBox(it);
+      c.save(); c.translate(it.x,it.y); c.rotate(it.rot*Math.PI/180);
+      c.lineWidth = S.w/180; c.setLineDash([S.w/60, S.w/90]);
+      c.strokeStyle = '#fff'; c.strokeRect(-b.hw,-b.hh,b.hw*2,b.hh*2);
+      c.lineDashOffset = S.w/90; c.strokeStyle = '#23305E'; c.strokeRect(-b.hw,-b.hh,b.hw*2,b.hh*2);
+      c.restore();
+    }
+  }
+  let blob = null, blobTimer = null;
+  function render(bgChanged){
+    if (bgChanged || bg.width !== S.w || bg.height !== S.h) drawBg();
+    if (cv.width !== S.w || cv.height !== S.h){ cv.width = S.w; cv.height = S.h; }
+    paint(ctx, true);
+    document.getElementById('device').style.setProperty('--ar', S.w/S.h);
+    document.getElementById('selbar').hidden = sel < 0;
+    blob = null; clearTimeout(blobTimer); blobTimer = setTimeout(makeBlob, 500);
+    try { localStorage.setItem('kabegami-v1', JSON.stringify(S)); } catch(e) {}
+  }
+  function makeBlob(){
+    const o = document.createElement('canvas'); o.width = S.w; o.height = S.h;
+    paint(o.getContext('2d'), false);
+    o.toBlob(b => { blob = b; }, 'image/png');
+  }
+
+  // ---------- UI builders ----------
+  function swatches(el, get, set){
+    el.innerHTML = '';
+    COLORS.forEach(col => {
+      const b = document.createElement('button');
+      b.className = 'sw'; b.style.background = col; b.setAttribute('aria-label', col);
+      b.setAttribute('aria-pressed', get()===col);
+      b.onclick = () => { set(col); [...el.children].forEach(x => x.setAttribute('aria-pressed', x===b)); };
+      el.appendChild(b);
+    });
+  }
+  const refreshSwatches = () => {
+    swatches(document.getElementById('swC1'), () => S.c1, c => { snap(); S.c1 = c; render(true); });
+    swatches(document.getElementById('swC2'), () => S.c2, c => { snap(); S.c2 = c; render(true); });
+    swatches(document.getElementById('swP'),  () => S.pcolor, c => { snap(); S.pcolor = c; render(true); });
+    swatches(document.getElementById('swT'),  () => textColor, c => {
+      textColor = c;
+      const it = S.items[sel]; if (it && it.type==='text'){ snap(); it.color = c; render(); }
+    });
+    const pats = document.getElementById('pats'); pats.innerHTML = '';
+    PATTERNS.forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'pat'; b.innerHTML = `<span class="ico" aria-hidden="true">${p.ico}</span>${p.label}`;
+      b.setAttribute('aria-pressed', S.pattern===p.id);
+      b.onclick = () => { snap(); S.pattern = p.id; render(true); [...pats.children].forEach(x => x.setAttribute('aria-pressed', x===b)); };
+      pats.appendChild(b);
+    });
+  };
+  function buildStamps(){
+    const cats = document.getElementById('cats'), box = document.getElementById('stamps');
+    cats.innerHTML = '';
+    Object.keys(STAMPS).forEach(k => {
+      const b = document.createElement('button');
+      b.className = 'btn'; b.textContent = k; b.setAttribute('aria-pressed', k===cat);
+      b.onclick = () => { cat = k; buildStamps(); };
+      cats.appendChild(b);
+    });
+    box.innerHTML = '';
+    STAMPS[cat].forEach(ch => {
+      const b = document.createElement('button');
+      b.className = 'stamp'; b.textContent = ch;
+      b.onclick = () => addItem({type:'stamp', ch, size:S.w*0.22});
+      box.appendChild(b);
+    });
+  }
+  function addItem(it){
+    snap();
+    const n = S.items.length;
+    Object.assign(it, {x:S.w/2 + ((n%5)-2)*S.w*0.04, y:S.h*0.5 + ((n%3)-1)*S.w*0.05, rot:0});
+    S.items.push(it); sel = S.items.length-1; render();
+    toast('ゆびで すきな ところに うごかしてね');
+  }
+
+  // ---------- pointer (drag + pinch) ----------
+  const pts = new Map();
+  let drag = null;
+  function toCanvas(e){
+    const r = cv.getBoundingClientRect();
+    return {x:(e.clientX-r.left)*S.w/r.width, y:(e.clientY-r.top)*S.h/r.height};
+  }
+  function hit(p){
+    for (let i=S.items.length-1;i>=0;i--){
+      const it = S.items[i], b = itemBox(it), a = -it.rot*Math.PI/180;
+      const dx = p.x-it.x, dy = p.y-it.y;
+      const lx = dx*Math.cos(a)-dy*Math.sin(a), ly = dx*Math.sin(a)+dy*Math.cos(a);
+      if (Math.abs(lx)<=b.hw && Math.abs(ly)<=b.hh) return i;
+    }
+    return -1;
+  }
+  cv.addEventListener('pointerdown', e => {
+    cv.setPointerCapture(e.pointerId);
+    const p = toCanvas(e); pts.set(e.pointerId, p);
+    if (pts.size === 1){
+      const i = hit(p); sel = i;
+      if (i >= 0){ snap(); drag = {ox:p.x - S.items[i].x, oy:p.y - S.items[i].y}; }
+      else drag = null;
+      render();
+    } else if (pts.size === 2 && S.items[sel]){
+      const [a,b] = [...pts.values()], it = S.items[sel];
+      drag = {pinch:true, d:Math.hypot(a.x-b.x,a.y-b.y), ang:Math.atan2(b.y-a.y,b.x-a.x), size:it.size, rot:it.rot};
+    }
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    const p = toCanvas(e); pts.set(e.pointerId, p);
+    const it = S.items[sel]; if (!it || !drag) return;
+    if (drag.pinch && pts.size >= 2){
+      const [a,b] = [...pts.values()];
+      it.size = clampSize(drag.size * Math.hypot(a.x-b.x,a.y-b.y)/drag.d);
+      it.rot = drag.rot + (Math.atan2(b.y-a.y,b.x-a.x)-drag.ang)*180/Math.PI;
+    } else if (!drag.pinch){
+      it.x = Math.min(Math.max(p.x-drag.ox,0),S.w); it.y = Math.min(Math.max(p.y-drag.oy,0),S.h);
+    }
+    render();
+  });
+  const up = e => { pts.delete(e.pointerId); if (pts.size===0) drag = null; else if (drag && drag.pinch) drag = null; };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  const clampSize = s => Math.min(Math.max(s, S.w*0.04), S.w*0.9);
+
+  document.getElementById('selbar').addEventListener('click', e => {
+    const act = e.target.dataset.act, it = S.items[sel]; if (!act || !it) return;
+    snap();
+    if (act==='bigger') it.size = clampSize(it.size*1.2);
+    if (act==='smaller') it.size = clampSize(it.size/1.2);
+    if (act==='rotate') it.rot = (it.rot + 20) % 360;
+    if (act==='front'){ S.items.splice(sel,1); S.items.push(it); sel = S.items.length-1; }
+    if (act==='delete'){ S.items.splice(sel,1); sel = -1; }
+    render();
+  });
+
+  // ---------- tabs & controls ----------
+  document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x===t));
+    document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.dataset.pane===t.dataset.tab));
+  });
+  document.getElementById('undo').onclick = () => {
+    if (!hist.length) return toast('もう もどれないよ');
+    S = JSON.parse(hist.pop()); sel = -1; render(true); refreshSwatches(); syncSize();
+  };
+  document.getElementById('clear').onclick = () => {
+    if (!confirm('ぜんぶ けして さいしょから つくる？')) return;
+    snap(); const w = S.w, h = S.h; S = fresh(); S.w = w; S.h = h; photo = null; sel = -1;
+    photoOffBtn.hidden = true; render(true); refreshSwatches();
+  };
+  document.getElementById('addText').onclick = () => {
+    const t = document.getElementById('txt').value.trim();
+    if (!t) return toast('さきに もじを かいてね');
+    addItem({type:'text', text:t, color:textColor, edge, size:S.w*0.13});
+    document.getElementById('txt').value = '';
+  };
+  const edgeBtn = document.getElementById('edge');
+  edgeBtn.onclick = () => {
+    edge = !edge; edgeBtn.textContent = 'しろい ふち：' + (edge ? 'あり' : 'なし'); edgeBtn.setAttribute('aria-pressed', edge);
+    const it = S.items[sel]; if (it && it.type==='text'){ snap(); it.edge = edge; render(); }
+  };
+  const photoOffBtn = document.getElementById('photoOff');
+  document.getElementById('photo').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const img = new Image();
+    img.onload = () => { photo = img; photoOffBtn.hidden = false; render(true); };
+    img.src = URL.createObjectURL(f); e.target.value = '';
+  };
+  photoOffBtn.onclick = () => { photo = null; photoOffBtn.hidden = true; render(true); };
+
+  const sizeSel = document.getElementById('size');
+  const syncSize = () => { sizeSel.value = S.w + 'x' + S.h; };
+  sizeSel.onchange = () => {
+    snap();
+    const [w,h] = sizeSel.value.split('x').map(Number), kx = w/S.w, ky = h/S.h;
+    S.items.forEach(it => { it.x *= kx; it.y *= ky; it.size *= kx; });
+    S.w = w; S.h = h; render(true);
+  };
+  const clockBtn = document.getElementById('clockBtn'), clock = document.getElementById('clock');
+  clockBtn.onclick = () => {
+    const on = clock.classList.toggle('off');
+    clockBtn.textContent = 'とけいの いち：' + (on ? 'かくす' : 'みる'); clockBtn.setAttribute('aria-pressed', !on);
+  };
+  const tick = () => {
+    const d = new Date();
+    document.getElementById('clockT').textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
+    document.getElementById('clockD').textContent = `${d.getMonth()+1}月${d.getDate()}日 ${'日月火水木金土'[d.getDay()]}曜日`;
+  };
+  tick(); setInterval(tick, 20000);
+
+  document.getElementById('saveBtn').onclick = async () => {
+    if (sel >= 0){ sel = -1; paint(ctx, false); document.getElementById('selbar').hidden = true; }
+    const b = blob;
+    if (!b){ clearTimeout(blobTimer); makeBlob(); return toast('じゅんびちゅう…もういちど おしてね'); }
+    const file = new File([b], 'kabegami.png', {type:'image/png'});
+    if (navigator.canShare && navigator.canShare({files:[file]})){
+      try { await navigator.share({files:[file]}); } catch(e) {}
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = 'kabegami.png'; a.click();
+      toast('ダウンロードしたよ');
+    }
+  };
+
+  let tt;
+  function toast(m){ const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 2200); }
+
+  refreshSwatches(); buildStamps(); syncSize(); render(true);
+  // re-render after webfont load so text items measure correctly
+  document.fonts && document.fonts.ready.then(() => render());
+})();
+</script>
+</body>
+</html>
