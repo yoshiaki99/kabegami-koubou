@@ -106,12 +106,12 @@ header{grid-area:head;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .tabs{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:3px solid var(--ink)}
 #cv.drawing{cursor:crosshair}
 .rainbow{background:conic-gradient(#FF5A5A,#FFD23F,#3CCB8F,#4C8DFF,#9A7BFF,#FF6FA3,#FF5A5A)}
-.widths{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.widths{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .wbtn{
   appearance:none;border:3px solid var(--ink);border-radius:16px;background:var(--soft);cursor:pointer;
-  height:56px;display:flex;align-items:center;justify-content:center;padding:0;
+  height:60px;display:flex;align-items:center;justify-content:center;padding:0;
 }
-.wbtn i{display:block;background:var(--ink);border-radius:999px;width:60%}
+.wbtn i{display:block;background:var(--ink);border-radius:999px}
 .wbtn[aria-pressed="true"],.tool[aria-pressed="true"]{background:var(--sun)}
 .wbtn:focus-visible{outline:4px solid var(--grape);outline-offset:3px}
 .tab{
@@ -338,7 +338,7 @@ footer strong{font-weight:700}
   try { const s = JSON.parse(localStorage.getItem('kabegami-v1')); if (s && s.items) S = Object.assign(fresh(), s); } catch(e) {}
   let photo = null, sel = -1, textColor = '#FFFFFF', edge = true, cat = 'どうぶつ';
   let mode = 'move', tool = 'pen', penColor = '#23305E', penW = 1;
-  const WIDTHS = [0.008, 0.018, 0.036];
+  const WIDTHS = [0.008, 0.018, 0.036, 0.07, 0.12];
   const hist = [];
   const snap = () => { hist.push(JSON.stringify(S)); if (hist.length > 50) hist.shift(); };
 
@@ -650,8 +650,9 @@ footer strong{font-weight:700}
     const wEl = document.getElementById('widths');
     WIDTHS.forEach((w, i) => {
       const b = document.createElement('button');
-      b.className = 'wbtn'; b.setAttribute('aria-label', ['ほそい','ふつう','ふとい'][i]);
-      b.innerHTML = `<i style="height:${[4,10,20][i]}px"></i>`;
+      b.className = 'wbtn'; b.setAttribute('aria-label', ['ほそい','ふつう','ふとい','もっと ふとい','いちばん ふとい'][i]);
+      const hpx = [3,7,13,22,34][i];
+      b.innerHTML = `<i style="height:${hpx}px;width:${Math.max(hpx, 26)}px"></i>`;
       b.setAttribute('aria-pressed', i===penW);
       b.onclick = () => { penW = i; [...wEl.children].forEach(x => x.setAttribute('aria-pressed', x===b)); };
       wEl.appendChild(b);
